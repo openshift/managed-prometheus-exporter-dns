@@ -1,3 +1,7 @@
+# Rendered templates
+deploy/025_sourcecode.yaml
+deploy/040_daemonset.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
