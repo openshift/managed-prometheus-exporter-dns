@@ -1,6 +1,5 @@
 apiVersion: extensions/v1beta1
 kind: DaemonSet
-
 metadata:
   name: dns-latency-exporter
   namespace: openshift-monitoring
@@ -18,7 +17,7 @@ spec:
     spec:
       containers:
       - name: "main"
-        command: ["/usr/bin/python", "/monitor/main.py"]
+        command: [ "/bin/sh", "/monitor/start.sh" ]
         workingDir: /monitor
         ports:
         - containerPort: 8080
@@ -52,5 +51,5 @@ spec:
       volumes:
       - name: monitor-volume
         configMap:
-          name: $MONITOR_CODE_CM_NAME
+          name: dns-latency-exporter-code
 
