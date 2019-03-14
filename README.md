@@ -13,11 +13,13 @@
 <!-- Install doctoc with `npm install -g doctoc`  then `doctoc readme.md --github` -->
 
 # Monitor Overview
+
 Every minute, the dns test attempts to resolve redhat.com and times how long it takes.
 
 An alert is triggered if dns resolution for the last 5 minutes averages above 200ms.
 
 # Metrics
+
 Note: These amounts reset each time the test is installed or restarted.
 - `dns_latency_milliseconds` - The time spent resolving dns
 - `dns_failure_failure_total` - The total number of dns errors encountered during tests
@@ -28,12 +30,7 @@ Installation of the exporter is a multi-step process. Step one is to use the pro
 
 ### Rendering Templates with Make
 
-Optionally, a different image version can be provided with the `IMAGE_VERSION` variable to  `make`. The defalt is `stable`.
-
-`make all` will render these manifests:
-
-* `deploy/025_sourcecode.yaml`
-* `deploy/040_daemonset.yaml`
+Use `make` to render the YAML manifests for the exporter.
 
 Once these have been created the collection of manifests can be applied in the usual fashion (such as `oc apply -f`).
 
