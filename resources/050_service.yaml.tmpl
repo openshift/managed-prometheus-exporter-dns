@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    name: dns-latency-exporter
-  name: dns-latency-exporter
+    name: $PREFIXED_NAME
+  name: $PREFIXED_NAME
   namespace: openshift-monitoring
 spec:
   ports:
@@ -12,6 +12,6 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    name: dns-latency-exporter
+    name: $PREFIXED_NAME
   sessionAffinity: None
   type: ClusterIP

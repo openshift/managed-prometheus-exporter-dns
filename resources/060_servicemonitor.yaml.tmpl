@@ -1,11 +1,11 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: dns-latency-exporter
+  name: $PREFIXED_NAME
   namespace: openshift-monitoring
   labels:
-    k8s-app: dns-latency-exporter
-    name: dns-latency-exporter
+    k8s-app: $PREFIXED_NAME
+    name: $PREFIXED_NAME
 spec:
   endpoints:
   - honorLabels: true
@@ -14,8 +14,8 @@ spec:
     scheme: http
     scrapeTimeout: 2m
     targetPort: 0
-  jobLabel: dns-latency-exporter
+  jobLabel: $PREFIXED_NAME
   namespaceSelector: {}
   selector:
     matchLabels:
-      name: dns-latency-exporter
+      name: $PREFIXED_NAME

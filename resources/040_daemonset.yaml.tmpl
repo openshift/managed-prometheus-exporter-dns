@@ -1,19 +1,19 @@
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
-  name: dns-latency-exporter
+  name: $PREFIXED_NAME
   namespace: openshift-monitoring
   labels:
-    name: dns-latency-exporter
+    name: $PREFIXED_NAME
 spec:
   selector:
     matchLabels:
-      name: dns-latency-exporter
+      name: $PREFIXED_NAME
   template:
     metadata:
-      name: dns-latency-exporter
+      name: $PREFIXED_NAME
       labels:
-        name: dns-latency-exporter
+        name: $PREFIXED_NAME
     spec:
       containers:
       - name: "main"
@@ -22,7 +22,7 @@ spec:
         ports:
         - containerPort: 8080
           protocol: "TCP"
-        image: 'quay.io/jupierce/openshift-python-monitoring:$IMAGE_VERSION'
+        image: $MAIN_IMAGE
         env:
         - name: PYTHONPATH
           value: /openshift-python/packages:/support/packages
@@ -47,9 +47,9 @@ spec:
           readOnly: true
       dnsPolicy: ClusterFirst
       restartPolicy: Always
-      serviceAccountName: sre-dns-latency-exporter
+      serviceAccountName: $SERVICEACCOUNT_NAME
       volumes:
       - name: monitor-volume
         configMap:
-          name: dns-latency-exporter-code
+          name: $SOURCE_CONFIGMAP_NAME
 
