@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: $PREFIXED_NAME
+  namespace: openshift-monitoring
+  labels:
+    name: $PREFIXED_NAME
+spec:
+  selector:
+    matchLabels:
+      name: $PREFIXED_NAME
+  template:
+    metadata:
+      name: $PREFIXED_NAME
+      labels:
+        name: $PREFIXED_NAME
+    spec:
+      containers:
+      - name: "main"
+        command: [ "/bin/sh", "/monitor/start.sh" ]
+        workingDir: /monitor
+        ports:
+        - containerPort: 8080
+          protocol: "TCP"
+        image: $MAIN_IMAGE
+        env:
+        - name: PYTHONPATH
+          value: /openshift-python/packages:/support/packages
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 2
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 420
+          periodSeconds: 360
+          timeoutSeconds: 240
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+          timeoutSeconds: 240
+        volumeMounts:
+        - name: monitor-volume
+          mountPath: /monitor
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: $SERVICEACCOUNT_NAME
+      volumes:
+      - name: monitor-volume
+        configMap:
+          name: $SOURCE_CONFIGMAP_NAME
+
