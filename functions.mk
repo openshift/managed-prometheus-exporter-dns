@@ -8,5 +8,5 @@ define generate_file
 		-e "s!\$$SERVICEACCOUNT_NAME!$(SERVICEACCOUNT_NAME)!g" \
 		-e "s!\$$SOURCE_CONFIGMAP_NAME!$(SOURCE_CONFIGMAP_NAME)!g" \
 		-e "s!\$$AWS_CREDENTIALS_SECRET_NAME!$(AWS_CREDENTIALS_SECRET_NAME)!g" \
-	resources/$(1).yaml.tmpl 1> deploy/$(1).yaml
+	deploy/$(1).yaml.tmpl 1> deploy/$(1).yaml
 endef

@@ -39,7 +39,7 @@ RESOURCELIST := servicemonitor/$(PREFIXED_NAME) service/$(PREFIXED_NAME) \
 
 all: deploy/010_serviceaccount-rolebinding.yaml deploy/025_sourcecode.yaml deploy/040_daemonset.yaml deploy/050_service.yaml deploy/060_servicemonitor.yaml
 
-deploy/010_serviceaccount-rolebinding.yaml: resources/010_serviceaccount-rolebinding.yaml.tmpl
+deploy/010_serviceaccount-rolebinding.yaml: deploy/010_serviceaccount-rolebinding.yaml.tmpl
 	@$(call generate_file,010_serviceaccount-rolebinding)
 
 deploy/025_sourcecode.yaml: $(SOURCEFILES)
@@ -48,13 +48,13 @@ deploy/025_sourcecode.yaml: $(SOURCEFILES)
 	done ; \
 	kubectl -n openshift-monitoring create configmap $(SOURCE_CONFIGMAP_NAME) --dry-run=true -o yaml $$files 1> deploy/025_sourcecode.yaml
 
-deploy/040_daemonset.yaml: resources/040_daemonset.yaml.tmpl
+deploy/040_daemonset.yaml: deploy/040_daemonset.yaml.tmpl
 	@$(call generate_file,040_daemonset)
 
-deploy/050_service.yaml: resources/050_service.yaml.tmpl
+deploy/050_service.yaml: deploy/050_service.yaml.tmpl
 	@$(call generate_file,050_service)
 
-deploy/060_servicemonitor.yaml: resources/060_servicemonitor.yaml.tmpl
+deploy/060_servicemonitor.yaml: deploy/060_servicemonitor.yaml.tmpl
 	@$(call generate_file,060_servicemonitor)
 
 
