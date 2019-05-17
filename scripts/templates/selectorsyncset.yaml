@@ -2,7 +2,7 @@ apiVersion: hive.openshift.io/v1alpha1
 kind: SelectorSyncSet
 metadata:
   generation: 1
-  name: mangaed-prometheus-exporter-dns
+  name: managed-prometheus-exporter-dns
 spec:
   clusterDeploymentSelector:
     matchLabels:
