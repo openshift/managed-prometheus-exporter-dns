@@ -11,7 +11,7 @@ objects:
   kind: SelectorSyncSet
   metadata:
     generation: 1
-    name: managed-prometheus-exporter-dns
+    name: osd-managed-prometheus-exporter-dns
   spec:
     clusterDeploymentSelector:
       matchLabels:
