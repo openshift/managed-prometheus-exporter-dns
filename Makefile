@@ -55,6 +55,10 @@ RESOURCELIST := servicemonitor/$(PREFIXED_NAME) service/$(PREFIXED_NAME) \
 	rolebinding/$(PREFIXED_NAME) serviceaccount/$(SERVICEACCOUNT_NAME) \
 	clusterrole/sre-allow-read-cluster-setup
 
+
+.PHONY: default
+default: all
+
 all: deploy/010_serviceaccount-rolebinding.yaml deploy/025_sourcecode.yaml deploy/040_daemonset.yaml deploy/050_service.yaml deploy/060_servicemonitor.yaml generate-syncset
 
 deploy/010_serviceaccount-rolebinding.yaml: resources/010_serviceaccount-rolebinding.yaml.tmpl
@@ -64,7 +68,7 @@ deploy/025_sourcecode.yaml: $(SOURCEFILES)
 	@for sfile in $(SOURCEFILES); do \
 		files="--from-file=$$sfile $$files" ; \
 	done ; \
-	kubectl -n openshift-monitoring create configmap $(SOURCE_CONFIGMAP_NAME) --dry-run=true -o yaml $$files 1> deploy/025_sourcecode.yaml
+	oc --config=.kubeconfig -n openshift-monitoring create configmap $(SOURCE_CONFIGMAP_NAME) --dry-run=true -o yaml $$files 1> deploy/025_sourcecode.yaml
 
 deploy/040_daemonset.yaml: resources/040_daemonset.yaml.tmpl
 	@$(call generate_file,040_daemonset)
