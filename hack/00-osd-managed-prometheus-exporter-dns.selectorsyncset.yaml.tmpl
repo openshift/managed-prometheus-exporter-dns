@@ -6,11 +6,21 @@ objects:
 - apiVersion: hive.openshift.io/v1alpha1
   kind: SelectorSyncSet
   metadata:
-    generation: 1
+    name: osd-${REPO_NAME}
+  spec:
+    clusterDeploymentSelector:
+      matchLabels:
+        api.openshift.com/managed: 'true'
+    resourceApplyMode: sync
+    resources: []
+- apiVersion: hive.openshift.io/v1alpha1
+  kind: SelectorSyncSet
+  metadata:
     labels:
-      managed.openshift.io/gitHash: 31192d2
+      managed.openshift.io/gitHash: ${IMAGE_TAG}
+      managed.openshift.io/gitRepoName: ${REPO_NAME}
       managed.openshift.io/osd: 'true'
-    name: osd-managed-prometheus-exporter-dns
+    name: managed-prometheus-exporter-dns
   spec:
     clusterDeploymentSelector:
       matchLabels:
@@ -21,43 +31,6 @@ objects:
       kind: ServiceAccount
       metadata:
         name: sre-dns-latency-exporter
-        namespace: openshift-monitoring
-    - apiVersion: rbac.authorization.k8s.io/v1
-      kind: RoleBinding
-      metadata:
-        name: sre-dns-latency-exporter
-        namespace: openshift-monitoring
-      roleRef:
-        apiGroup: rbac.authorization.k8s.io
-        kind: ClusterRole
-        name: edit
-      subjects:
-      - kind: ServiceAccount
-        name: sre-dns-latency-exporter
-        namespace: openshift-monitoring
-    - apiVersion: v1
-      data:
-        main.py: "#!/usr/bin/python\n\nimport time\nimport logging\nfrom prometheus_client\
-          \ import start_http_server, Counter, Gauge\nimport timeit\n\nMONITOR_NAME\
-          \ = 'DNS'\nHOST = 'redhat.com'\n\nDNS_LATENCY = Gauge('dns_latency_milliseconds',\
-          \ 'Time spent during dns request')\nDNS_ERROR = Counter('dns_failure_failure_total',\
-          \ 'The total number of failures encountered resolving dns')\n\ndef run_test():\n\
-          \    logging.info(\"looking up %s\", HOST)\n    try:\n        DNS_LATENCY.set(timeit.timeit(\"\
-          socket.gethostbyname('%s')\" % HOST, setup=\"import socket\", number=1))\n\
-          \    except Exception as e:\n        traceback.print_exc()\n        DNS_ERROR.inc()\n\
-          \nif __name__ == '__main__':\n\n    logging.basicConfig(level=logging.INFO,\
-          \ format='%(asctime)s %(levelname)s:%(name)s:%(message)s')\n    logging.info('Starting\
-          \ up metrics endpoint')\n    # Start up the server to expose the metrics.\n\
-          \    start_http_server(8080)\n    while True:\n        logging.info('Running\
-          \ {} test...'.format(MONITOR_NAME))\n        run_test()\n        logging.info(\"\
-          Sleeping for 1 minute before next test...\")\n        time.sleep(60)\n"
-        start.sh: "#!/bin/sh\n\nset -o allexport\n\nif [[ -d /config && -d /config/env\
-          \ ]]; then\n  source /config/env/*\nfi\n\nexec /usr/bin/python /monitor/main.py\
-          \ \"$@\""
-      kind: ConfigMap
-      metadata:
-        creationTimestamp: null
-        name: sre-dns-latency-exporter-code
         namespace: openshift-monitoring
     - apiVersion: extensions/v1beta1
       kind: DaemonSet
@@ -115,23 +88,6 @@ objects:
             - configMap:
                 name: sre-dns-latency-exporter-code
               name: monitor-volume
-    - apiVersion: v1
-      kind: Service
-      metadata:
-        labels:
-          name: sre-dns-latency-exporter
-        name: sre-dns-latency-exporter
-        namespace: openshift-monitoring
-      spec:
-        ports:
-        - name: http-main
-          port: 80
-          protocol: TCP
-          targetPort: 8080
-        selector:
-          name: sre-dns-latency-exporter
-        sessionAffinity: None
-        type: ClusterIP
     - apiVersion: monitoring.coreos.com/v1
       kind: ServiceMonitor
       metadata:
@@ -153,7 +109,63 @@ objects:
         selector:
           matchLabels:
             name: sre-dns-latency-exporter
+    - apiVersion: v1
+      data:
+        main.py: "#!/usr/bin/python\n\nimport time\nimport logging\nfrom prometheus_client
+          import start_http_server, Counter, Gauge\nimport timeit\n\nMONITOR_NAME
+          = 'DNS'\nHOST = 'redhat.com'\n\nDNS_LATENCY = Gauge('dns_latency_milliseconds',
+          'Time spent during dns request')\nDNS_ERROR = Counter('dns_failure_failure_total',
+          'The total number of failures encountered resolving dns')\n\ndef run_test():\n
+          \   logging.info(\"looking up %s\", HOST)\n    try:\n        DNS_LATENCY.set(timeit.timeit(\"socket.gethostbyname('%s')\"
+          % HOST, setup=\"import socket\", number=1))\n    except Exception as e:\n
+          \       traceback.print_exc()\n        DNS_ERROR.inc()\n\nif __name__ ==
+          '__main__':\n\n    logging.basicConfig(level=logging.INFO, format='%(asctime)s
+          %(levelname)s:%(name)s:%(message)s')\n    logging.info('Starting up metrics
+          endpoint')\n    # Start up the server to expose the metrics.\n    start_http_server(8080)\n
+          \   while True:\n        logging.info('Running {} test...'.format(MONITOR_NAME))\n
+          \       run_test()\n        logging.info(\"Sleeping for 1 minute before
+          next test...\")\n        time.sleep(60)\n"
+        start.sh: "#!/bin/sh\n\nset -o allexport\n\nif [[ -d /config && -d /config/env
+          ]]; then\n  source /config/env/*\nfi\n\nexec /usr/bin/python /monitor/main.py
+          \"$@\""
+      kind: ConfigMap
+      metadata:
+        creationTimestamp: null
+        name: sre-dns-latency-exporter-code
+        namespace: openshift-monitoring
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          name: sre-dns-latency-exporter
+        name: sre-dns-latency-exporter
+        namespace: openshift-monitoring
+      spec:
+        ports:
+        - name: http-main
+          port: 80
+          protocol: TCP
+          targetPort: 8080
+        selector:
+          name: sre-dns-latency-exporter
+        sessionAffinity: None
+        type: ClusterIP
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: sre-dns-latency-exporter
+        namespace: openshift-monitoring
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: edit
+      subjects:
+      - kind: ServiceAccount
+        name: sre-dns-latency-exporter
+        namespace: openshift-monitoring
 parameters:
 - name: IMAGE_TAG
   required: true
-  value: latest
+- name: REPO_NAME
+  required: true
+  value: managed-prometheus-exporter-dns
