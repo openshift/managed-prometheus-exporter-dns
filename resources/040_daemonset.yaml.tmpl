@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: $PREFIXED_NAME
@@ -52,4 +52,3 @@ spec:
       - name: monitor-volume
         configMap:
           name: $SOURCE_CONFIGMAP_NAME
-
