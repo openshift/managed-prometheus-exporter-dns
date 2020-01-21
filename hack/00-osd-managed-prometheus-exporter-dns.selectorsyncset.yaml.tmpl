@@ -112,7 +112,7 @@ objects:
     - apiVersion: v1
       data:
         main.py: "#!/usr/bin/python\n\nimport time\nimport logging\nfrom prometheus_client
-          import start_http_server, Counter, Gauge\nimport timeit\n\nMONITOR_NAME
+          import start_http_server, Counter, Gauge\nimport timeit\nimport traceback\n\nMONITOR_NAME
           = 'DNS'\nHOST = 'redhat.com'\n\nDNS_LATENCY = Gauge('dns_latency_milliseconds',
           'Time spent during dns request')\nDNS_ERROR = Counter('dns_failure_failure_total',
           'The total number of failures encountered resolving dns')\n\ndef run_test():\n
