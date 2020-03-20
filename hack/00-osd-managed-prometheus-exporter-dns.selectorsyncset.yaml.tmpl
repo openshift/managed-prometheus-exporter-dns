@@ -11,7 +11,7 @@ objects:
     clusterDeploymentSelector:
       matchLabels:
         api.openshift.com/managed: 'true'
-    resourceApplyMode: sync
+    resourceApplyMode: Sync
     resources: []
 - apiVersion: hive.openshift.io/v1alpha1
   kind: SelectorSyncSet
@@ -25,7 +25,7 @@ objects:
     clusterDeploymentSelector:
       matchLabels:
         api.openshift.com/managed: 'true'
-    resourceApplyMode: sync
+    resourceApplyMode: Sync
     resources:
     - apiVersion: v1
       kind: ServiceAccount
