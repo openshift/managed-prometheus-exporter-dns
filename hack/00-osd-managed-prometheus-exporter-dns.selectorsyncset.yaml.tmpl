@@ -3,7 +3,7 @@ kind: Template
 metadata:
   name: selectorsyncset-template
 objects:
-- apiVersion: hive.openshift.io/v1alpha1
+- apiVersion: hive.openshift.io/v1
   kind: SelectorSyncSet
   metadata:
     name: osd-${REPO_NAME}
@@ -13,7 +13,7 @@ objects:
         api.openshift.com/managed: 'true'
     resourceApplyMode: Sync
     resources: []
-- apiVersion: hive.openshift.io/v1alpha1
+- apiVersion: hive.openshift.io/v1
   kind: SelectorSyncSet
   metadata:
     labels:
