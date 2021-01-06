@@ -84,6 +84,8 @@ objects:
             dnsPolicy: ClusterFirst
             restartPolicy: Always
             serviceAccountName: sre-dns-latency-exporter
+            tolerations:
+            - operator: Exists
             volumes:
             - configMap:
                 name: sre-dns-latency-exporter-code
