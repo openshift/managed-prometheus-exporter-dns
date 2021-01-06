@@ -48,6 +48,8 @@ spec:
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       serviceAccountName: $SERVICEACCOUNT_NAME
+      tolerations:
+      - operator: Exists
       volumes:
       - name: monitor-volume
         configMap:
