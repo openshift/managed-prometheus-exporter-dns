@@ -37,8 +37,8 @@ NAME_PREFIX ?= sre-
 SOURCE_CONFIGMAP_SUFFIX ?= -code
 CREDENITALS_SUFFIX ?= -aws-credentials
 
-MAIN_IMAGE_URI ?= quay.io/openshift-sre/managed-prometheus-exporter-base
-IMAGE_VERSION ?= 0.1.3-5a0899dd
+MAIN_IMAGE_URI ?= quay.io/app-sre/managed-prometheus-exporter-base
+IMAGE_VERSION ?= latest
 
 # Generate variables
 
@@ -64,7 +64,7 @@ deploy/025_sourcecode.yaml: $(SOURCEFILES)
 	@for sfile in $(SOURCEFILES); do \
 		files="--from-file=$$sfile $$files" ; \
 	done ; \
-	oc --config=.kubeconfig -n openshift-monitoring create configmap $(SOURCE_CONFIGMAP_NAME) --dry-run=true -o yaml $$files 1> deploy/025_sourcecode.yaml
+	oc -n openshift-monitoring create configmap $(SOURCE_CONFIGMAP_NAME) --dry-run=client -o yaml $$files 1> deploy/025_sourcecode.yaml
 
 deploy/040_daemonset.yaml: resources/040_daemonset.yaml.tmpl
 	@$(call generate_file,040_daemonset)
@@ -77,8 +77,8 @@ deploy/060_servicemonitor.yaml: resources/060_servicemonitor.yaml.tmpl
 
 .PHONY: generate-syncset
 generate-syncset:
-	docker pull quay.io/app-sre/python:2 && docker tag quay.io/app-sre/python:2 python:2 || true; \
-	docker run --rm -v `pwd`:`pwd` python:2 /bin/sh -c "cd `pwd`; pip install pyyaml; scripts/generate_syncset.py -t ${SELECTOR_SYNC_SET_TEMPLATE_DIR} -y ${YAML_DIRECTORY} -d ${SELECTOR_SYNC_SET_DESTINATION} -r ${REPO_NAME}"
+	docker pull quay.io/app-sre/python:2 2>/dev/null && docker tag quay.io/app-sre/python:2 python:2 || true; \
+	docker run --rm -v `pwd -P`:`pwd -P` python:2 /bin/sh -c "cd `pwd -P`; pip install pyyaml; scripts/generate_syncset.py -t ${SELECTOR_SYNC_SET_TEMPLATE_DIR} -y ${YAML_DIRECTORY} -d ${SELECTOR_SYNC_SET_DESTINATION} -r ${REPO_NAME}"
 
 .PHONY: clean
 clean:

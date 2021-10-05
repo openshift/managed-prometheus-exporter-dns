@@ -56,7 +56,7 @@ objects:
               env:
               - name: PYTHONPATH
                 value: /openshift-python/packages:/support/packages
-              image: quay.io/openshift-sre/managed-prometheus-exporter-base:0.1.3-5a0899dd
+              image: quay.io/app-sre/managed-prometheus-exporter-base:latest
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 failureThreshold: 2
