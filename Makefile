@@ -55,7 +55,7 @@ RESOURCELIST := servicemonitor/$(PREFIXED_NAME) service/$(PREFIXED_NAME) \
 	rolebinding/$(PREFIXED_NAME) serviceaccount/$(SERVICEACCOUNT_NAME) \
 	clusterrole/sre-allow-read-cluster-setup
 
-all: deploy/010_serviceaccount-rolebinding.yaml deploy/025_sourcecode.yaml deploy/040_daemonset.yaml deploy/050_service.yaml deploy/060_servicemonitor.yaml generate-syncset
+all: deploy/010_serviceaccount-rolebinding.yaml deploy/025_sourcecode.yaml deploy/030_ca-configmap.yaml deploy/040_daemonset.yaml deploy/050_service.yaml deploy/060_servicemonitor.yaml generate-syncset
 
 deploy/010_serviceaccount-rolebinding.yaml: resources/010_serviceaccount-rolebinding.yaml.tmpl
 	@$(call generate_file,010_serviceaccount-rolebinding)
@@ -65,6 +65,9 @@ deploy/025_sourcecode.yaml: $(SOURCEFILES)
 		files="--from-file=$$sfile $$files" ; \
 	done ; \
 	oc -n openshift-monitoring create configmap $(SOURCE_CONFIGMAP_NAME) --dry-run=client -o yaml $$files 1> deploy/025_sourcecode.yaml
+
+deploy/030_ca-configmap.yaml: resources/030_ca-configmap.yaml.tmpl
+	@$(call generate_file,030_ca-configmap)
 
 deploy/040_daemonset.yaml: resources/040_daemonset.yaml.tmpl
 	@$(call generate_file,040_daemonset)

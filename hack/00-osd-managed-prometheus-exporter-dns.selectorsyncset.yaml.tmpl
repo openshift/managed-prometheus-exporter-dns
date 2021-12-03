@@ -28,6 +28,13 @@ objects:
     resourceApplyMode: Sync
     resources:
     - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        labels:
+          config.openshift.io/inject-trusted-cabundle: 'true'
+        name: sre-dns-latency-exporter-trusted-ca-bundle
+        namespace: openshift-monitoring
+    - apiVersion: v1
       kind: ServiceAccount
       metadata:
         name: sre-dns-latency-exporter
@@ -80,6 +87,9 @@ objects:
               - mountPath: /monitor
                 name: monitor-volume
                 readOnly: true
+              - mountPath: /etc/pki/ca-trust/extracted/pem
+                name: trusted-ca-bundle
+                readOnly: true
               workingDir: /monitor
             dnsPolicy: ClusterFirst
             restartPolicy: Always
@@ -90,6 +100,13 @@ objects:
             - configMap:
                 name: sre-dns-latency-exporter-code
               name: monitor-volume
+            - configMap:
+                defaultMode: 420
+                items:
+                - key: ca-bundle.crt
+                  path: tls-ca-bundle.pem
+                name: sre-dns-latency-exporter-trusted-ca-bundle
+              name: trusted-ca-bundle
     - apiVersion: monitoring.coreos.com/v1
       kind: ServiceMonitor
       metadata:
