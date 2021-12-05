@@ -15,7 +15,17 @@ DNS_ERROR = Counter('dns_failure_failure_total', 'The total number of failures e
 def run_test():
     logging.info("looking up %s", HOST)
     try:
-        DNS_LATENCY.set(timeit.timeit("socket.gethostbyname('%s')" % HOST, setup="import socket", number=1))
+        DNS_LATENCY.set(timeit.timeit("""
+        hostname= '%s'
+        try:
+          socket.gethostbyname(hostname)
+        except socket.gaierror as e:
+          # adding the error type is from https://github.com/tao12345666333/tornado-zh/blob/e9e8519beb147d9e1290f6a4fa7d61123d1ecb1c/tornado/netutil.py#L293
+          # and would hopefully allow us to understand the root of this issue
+          print(f'python command "import socket; socket.gethostbyname({hostname})"')
+          print(f'=== error_type: {e.args[0]} ===')
+          print(f'=== err: {e} ===')
+        """ % HOST, setup="import socket", number=1))
     except Exception as e:
         traceback.print_exc()
         DNS_ERROR.inc()
