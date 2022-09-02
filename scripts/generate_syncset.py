@@ -1,16 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # logic for sorted output: https://gist.github.com/oglops/c70fb69eef42d40bed06
 
-try:
-        # for python newer than 2.7
-    from collections import OrderedDict
-except ImportError:
-        # use backport from pypi
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
-import yaml
-
+import oyaml as yaml
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -19,7 +13,6 @@ from yaml.representer import SafeRepresenter
 _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
 
 import os
-import sys
 import argparse
 import copy
 
@@ -32,7 +25,7 @@ def dict_constructor(loader, node):
 
 def get_yaml_all(filename):
     with open(filename,'r') as input_file:
-        return list(yaml.load_all(input_file))
+        return list(yaml.safe_load_all(input_file))
 
 def get_yaml(filename):
     with open(filename,'r') as input_file:
@@ -55,8 +48,8 @@ def get_all_yaml_obj(file_paths):
         objects = get_yaml_all(file)
         for obj in objects:
             yaml_objs.append(obj)
-    yaml_objs = sorted(yaml_objs)
-    return yaml_objs
+    # Sort list of yamls by their kind
+    return sorted(yaml_objs, key=lambda d: d['kind'])
 
 def process_yamls(name, directory, obj):
     o = copy.deepcopy(obj)
@@ -65,7 +58,6 @@ def process_yamls(name, directory, obj):
     if len(yamls) == 0:
         return
 
-    yamls = sorted(yamls)
     for y in yamls:
         if 'patch' in y:
             if not 'patches' in o['spec']:
@@ -118,9 +110,6 @@ if __name__ == '__main__':
 
     Dumper.add_representer(str,
                         SafeRepresenter.represent_str)
-
-    Dumper.add_representer(unicode,
-                        SafeRepresenter.represent_unicode)
 
     with open(arguments.destination,'w') as outfile:
         yaml.dump(template_data, outfile, Dumper=Dumper, default_flow_style=False)

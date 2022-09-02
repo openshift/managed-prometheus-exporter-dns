@@ -28,7 +28,7 @@ EXPORTER_NAME := dns-latency-exporter
 # currently unused
 EXPORTER_TYPE := daemonset
 
-# All of the source files which compose the monitor. 
+# All of the source files which compose the monitor.
 # Important note: No directory structure will be maintained
 SOURCEFILES ?= monitor/main.py monitor/start.sh
 
@@ -80,8 +80,8 @@ deploy/060_servicemonitor.yaml: resources/060_servicemonitor.yaml.tmpl
 
 .PHONY: generate-syncset
 generate-syncset:
-	docker pull quay.io/app-sre/python:2 2>/dev/null && docker tag quay.io/app-sre/python:2 python:2 || true; \
-	docker run --rm -v `pwd -P`:`pwd -P` python:2 /bin/sh -c "cd `pwd -P`; pip install pyyaml; scripts/generate_syncset.py -t ${SELECTOR_SYNC_SET_TEMPLATE_DIR} -y ${YAML_DIRECTORY} -d ${SELECTOR_SYNC_SET_DESTINATION} -r ${REPO_NAME}"
+	docker pull quay.io/app-sre/python:3 2>/dev/null && docker tag quay.io/app-sre/python:3 python:3 || true; \
+	docker run --rm -v `pwd -P`:`pwd -P` python:3 /bin/sh -c "cd `pwd -P`; pip3 install oyaml; scripts/generate_syncset.py -t ${SELECTOR_SYNC_SET_TEMPLATE_DIR} -y ${YAML_DIRECTORY} -d ${SELECTOR_SYNC_SET_DESTINATION} -r ${REPO_NAME}"
 
 .PHONY: clean
 clean:

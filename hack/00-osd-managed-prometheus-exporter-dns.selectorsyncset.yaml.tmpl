@@ -1,5 +1,11 @@
 apiVersion: v1
 kind: Template
+parameters:
+- name: IMAGE_TAG
+  required: true
+- name: REPO_NAME
+  value: managed-prometheus-exporter-dns
+  required: true
 metadata:
   name: selectorsyncset-template
 objects:
@@ -28,107 +34,6 @@ objects:
     resourceApplyMode: Sync
     resources:
     - apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        labels:
-          config.openshift.io/inject-trusted-cabundle: 'true'
-        name: sre-dns-latency-exporter-trusted-ca-bundle
-        namespace: openshift-monitoring
-    - apiVersion: v1
-      kind: ServiceAccount
-      metadata:
-        name: sre-dns-latency-exporter
-        namespace: openshift-monitoring
-    - apiVersion: apps/v1
-      kind: DaemonSet
-      metadata:
-        labels:
-          name: sre-dns-latency-exporter
-        name: sre-dns-latency-exporter
-        namespace: openshift-monitoring
-      spec:
-        selector:
-          matchLabels:
-            name: sre-dns-latency-exporter
-        template:
-          metadata:
-            labels:
-              name: sre-dns-latency-exporter
-            name: sre-dns-latency-exporter
-          spec:
-            containers:
-            - command:
-              - /bin/sh
-              - /monitor/start.sh
-              env:
-              - name: PYTHONPATH
-                value: /openshift-python/packages:/support/packages
-              image: quay.io/app-sre/managed-prometheus-exporter-base:latest
-              imagePullPolicy: IfNotPresent
-              livenessProbe:
-                failureThreshold: 2
-                httpGet:
-                  path: /
-                  port: 8080
-                initialDelaySeconds: 420
-                periodSeconds: 360
-                timeoutSeconds: 240
-              name: main
-              ports:
-              - containerPort: 8080
-                protocol: TCP
-              readinessProbe:
-                httpGet:
-                  path: /
-                  port: 8080
-                initialDelaySeconds: 3
-                timeoutSeconds: 240
-              volumeMounts:
-              - mountPath: /monitor
-                name: monitor-volume
-                readOnly: true
-              - mountPath: /etc/pki/ca-trust/extracted/pem
-                name: trusted-ca-bundle
-                readOnly: true
-              workingDir: /monitor
-            dnsPolicy: ClusterFirst
-            restartPolicy: Always
-            serviceAccountName: sre-dns-latency-exporter
-            tolerations:
-            - operator: Exists
-            volumes:
-            - configMap:
-                name: sre-dns-latency-exporter-code
-              name: monitor-volume
-            - configMap:
-                defaultMode: 420
-                items:
-                - key: ca-bundle.crt
-                  path: tls-ca-bundle.pem
-                name: sre-dns-latency-exporter-trusted-ca-bundle
-              name: trusted-ca-bundle
-    - apiVersion: monitoring.coreos.com/v1
-      kind: ServiceMonitor
-      metadata:
-        labels:
-          k8s-app: sre-dns-latency-exporter
-          name: sre-dns-latency-exporter
-        name: sre-dns-latency-exporter
-        namespace: openshift-monitoring
-      spec:
-        endpoints:
-        - honorLabels: true
-          interval: 2m
-          port: http-main
-          scheme: http
-          scrapeTimeout: 2m
-          targetPort: 0
-        jobLabel: sre-dns-latency-exporter
-        namespaceSelector: {}
-        selector:
-          matchLabels:
-            name: sre-dns-latency-exporter
-    - apiVersion: v1
       data:
         main.py: "#!/usr/bin/python\n\nimport time\nimport logging\nfrom prometheus_client
           import start_http_server, Counter, Gauge\nimport timeit\nimport traceback\n\nMONITOR_NAME
@@ -153,6 +58,94 @@ objects:
         name: sre-dns-latency-exporter-code
         namespace: openshift-monitoring
     - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        namespace: openshift-monitoring
+        name: sre-dns-latency-exporter-trusted-ca-bundle
+        labels:
+          config.openshift.io/inject-trusted-cabundle: 'true'
+    - apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: sre-dns-latency-exporter
+        namespace: openshift-monitoring
+        labels:
+          name: sre-dns-latency-exporter
+      spec:
+        selector:
+          matchLabels:
+            name: sre-dns-latency-exporter
+        template:
+          metadata:
+            name: sre-dns-latency-exporter
+            labels:
+              name: sre-dns-latency-exporter
+          spec:
+            containers:
+            - name: main
+              command:
+              - /bin/sh
+              - /monitor/start.sh
+              workingDir: /monitor
+              ports:
+              - containerPort: 8080
+                protocol: TCP
+              image: quay.io/app-sre/managed-prometheus-exporter-base:latest
+              env:
+              - name: PYTHONPATH
+                value: /openshift-python/packages:/support/packages
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 2
+                httpGet:
+                  path: /
+                  port: 8080
+                initialDelaySeconds: 420
+                periodSeconds: 360
+                timeoutSeconds: 240
+              readinessProbe:
+                httpGet:
+                  path: /
+                  port: 8080
+                initialDelaySeconds: 3
+                timeoutSeconds: 240
+              volumeMounts:
+              - name: monitor-volume
+                mountPath: /monitor
+                readOnly: true
+              - mountPath: /etc/pki/ca-trust/extracted/pem
+                name: trusted-ca-bundle
+                readOnly: true
+            dnsPolicy: ClusterFirst
+            restartPolicy: Always
+            serviceAccountName: sre-dns-latency-exporter
+            tolerations:
+            - operator: Exists
+            volumes:
+            - name: monitor-volume
+              configMap:
+                name: sre-dns-latency-exporter-code
+            - name: trusted-ca-bundle
+              configMap:
+                defaultMode: 420
+                items:
+                - key: ca-bundle.crt
+                  path: tls-ca-bundle.pem
+                name: sre-dns-latency-exporter-trusted-ca-bundle
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: sre-dns-latency-exporter
+        namespace: openshift-monitoring
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: edit
+      subjects:
+      - kind: ServiceAccount
+        name: sre-dns-latency-exporter
+        namespace: openshift-monitoring
+    - apiVersion: v1
       kind: Service
       metadata:
         labels:
@@ -169,22 +162,29 @@ objects:
           name: sre-dns-latency-exporter
         sessionAffinity: None
         type: ClusterIP
-    - apiVersion: rbac.authorization.k8s.io/v1
-      kind: RoleBinding
+    - apiVersion: v1
+      kind: ServiceAccount
       metadata:
         name: sre-dns-latency-exporter
         namespace: openshift-monitoring
-      roleRef:
-        apiGroup: rbac.authorization.k8s.io
-        kind: ClusterRole
-        name: edit
-      subjects:
-      - kind: ServiceAccount
+    - apiVersion: monitoring.coreos.com/v1
+      kind: ServiceMonitor
+      metadata:
         name: sre-dns-latency-exporter
         namespace: openshift-monitoring
-parameters:
-- name: IMAGE_TAG
-  required: true
-- name: REPO_NAME
-  required: true
-  value: managed-prometheus-exporter-dns
+        labels:
+          k8s-app: sre-dns-latency-exporter
+          name: sre-dns-latency-exporter
+      spec:
+        endpoints:
+        - honorLabels: true
+          interval: 2m
+          port: http-main
+          scheme: http
+          scrapeTimeout: 2m
+          targetPort: 0
+        jobLabel: sre-dns-latency-exporter
+        namespaceSelector: {}
+        selector:
+          matchLabels:
+            name: sre-dns-latency-exporter
