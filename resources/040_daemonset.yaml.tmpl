@@ -15,6 +15,7 @@ spec:
       labels:
         name: $PREFIXED_NAME
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: "main"
         command: [ "/bin/sh", "/monitor/start.sh" ]
