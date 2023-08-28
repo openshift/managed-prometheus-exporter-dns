@@ -42,6 +42,11 @@ spec:
             port: 8080
           initialDelaySeconds: 3
           timeoutSeconds: 240
+        securityContext:
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
         volumeMounts:
         - name: monitor-volume
           mountPath: /monitor
